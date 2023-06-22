@@ -1,0 +1,127 @@
+%Adapted from https://tex.stackexchange.com/questions/356636/restate-a-theorem-before-stating-it
+\ProvidesPackage{restate-private}
+%Requires pgfkeys, etoolbox, thmtools, xstring
+\makeatletter
+%Restatable package very annoyingly requires the content that will be restated
+%to appear first (before any times you call \restate{..}). This fixes it.
+%It uses the restate name as a
+%label, BTdubs, which is honestly how it should be
+%How it mostly works - for when you forget - \BODY prints out the original theorem
+% the protectedwrite thing writes the command restatetheorem (which defines two more commands) into the aux file, which apparently runs
+%at the beginning of a document. 
+% restate{name} which does the restating from there 
+\long\def\@secondofthree#1#2#3{#2}
+\long\def\@thirdoffour#1#2#3#4{#3}
+\newcounter{restating}
+
+\pgfkeysdef{/handlers/.altForm}
+{%
+  \global\providetoggle{\pgfkeyscurrentpath}%
+  \global\toggletrue{\pgfkeyscurrentpath}%
+}
+\pgfkeysdef{/handlers/.defForm}
+{%
+  \global\providetoggle{\pgfkeyscurrentpath}%
+  \global\togglefalse{\pgfkeyscurrentpath}
+}
+
+%Allow to specify possible alternatives to switch out small sections in restating
+% #1 -- label for this option
+% #2 -- default form
+% #3 -- alternative form
+\newcommand{\restateAlt}[3]{%
+  \providetoggle{/RestateAlt/#1}%
+  \iftoggle{/RestateAlt/#1}{#3}{#2}%
+}
+
+% #1 -- theorem type
+% #2 -- name
+\NewEnviron{restatethis}[2]{%
+  \begin{#1}%
+  \label{#2}
+  \BODY
+  % Do the write inside the body of the theorem environment because if I do it afterwards it messes
+  % up the spacing for some strange reason...
+  \protected@write\@auxout{}{%
+    \string\@restatetheorem{#1}{#2}{\csname the#1\endcsname}{\detokenize\expandafter{\BODY}}%
+  }%
+  \end{#1}%
+}
+
+% Figure out which macro to redefine to change the numbering.
+% Easy if thmtools is loaded, otherwise we have to extract the name from some macro.
+% This will break if some jerk loads thmtools and then ntheorem.
+\@ifpackageloaded{thmtools}{%
+  % just use the name of the environment
+  \def\restatethm@getthmcountercsname#1{\def\thethmcsname{#1}}%
+}{%
+  \@ifpackageloaded{ntheorem}{%
+    % extract the right macro from \mkheader@thmtype -> ???? \@thm{environmentname}{numberwithname}{thmname}
+    \def\restatethm@getthmcountercsname#1{%
+      \def\thethmcsname{\expandafter\expandafter\expandafter\restatethm@ntheorem@getthmcountercsname@helper\csname mkheader@#1\endcsname}}%
+    \def\restatethm@ntheorem@getthmcountercsname@helper#1\@thm#2#3#4{#3}
+  }{%
+    \@ifpackageloaded{amsthm}{%
+      % extract the right macro from \thmtype -> \@thm{????}{numberwithname}{thmname} (it's the third thing)
+      \def\restatethm@getthmcountercsname#1{\edef\thethmcsname{\expandafter\expandafter\expandafter\@thirdoffour\csname#1\endcsname}}%
+    }{%
+      % extract the right macro from \thmtype -> \@thm{numberwithname}{thmname} (it's the second thing)
+      \def\restatethm@getthmcountercsname#1{\edef\thethmcsname{\expandafter\expandafter\expandafter\@secondofthree\csname#1\endcsname}}%
+    }%
+  }%
+}
+% #1 -- environment type
+% #2 -- name for restating
+% #3 -- number
+% #4 -- content
+\newcommand{\@restatetheorem}[4]{%
+  \expandafter\gdef\csname restatethis@#2\endcsname{%
+    \begingroup
+    % First we have to set the numerical label to the right value.
+    \restatethm@getthmcountercsname{#1}
+    \expandafter\def\csname the\thethmcsname\endcsname{#3}%
+    \addtocounter{restating}{1}
+    \expandafter\def\csname theH\thethmcsname\endcsname{restated.\arabic{restating}.#3}%
+    % Print the theorem
+    \begin{#1}#4\end{#1}%
+    \expandafter\addtocounter\expandafter{\thethmcsname}{-1}
+    %we don't want this occurence to count
+    \endgroup
+  }%
+  \expandafter\gdef\csname restatethisbody@#2\endcsname{%
+    \begingroup
+    % First we have to set the numerical label to the right value.
+    % Print the theorem
+    #4
+    \endgroup
+  }%
+}
+%#1 - opt argument to set alternatives (defaults to nothing)
+%#2 - name of what to be restated
+\newcommand{\restate}[2][]{%
+  \StrSubstitute{#1}{,}{/.altForm,/RestateAlt/}[\commaReplace]%
+  \IfEq{#1}{}{\edef\x{}}{%
+    \edef\x{/RestateAlt/\commaReplace/.altForm}%
+  }%
+  \pgfkeysalsofrom{\x}%
+  \csname restatethis@#2\endcsname%
+  \StrSubstitute{#1}{,}{/.defForm,/RestateAlt/}[\commaReplace]%
+  \IfEq{#1}{}{\edef\x{}}{%
+    \edef\x{/RestateAlt/\commaReplace/.defForm}%
+  }  \pgfkeysalsofrom{\x}%
+} % Just use the stored macro
+\newcommand{\restateBody}[2][]{%
+  \StrSubstitute{#1}{,}{/.altForm,/RestateAlt/}[\commaReplace]%
+  \IfEq{#1}{}{\edef\x{}}{%
+    \edef\x{/RestateAlt/\commaReplace/.altForm}%
+  }%
+  \pgfkeysalsofrom{\x}%
+  \csname restatethisbody@#2\endcsname%
+  \StrSubstitute{#1}{,}{/.defForm,/RestateAlt/}[\commaReplace]%
+  \IfEq{#1}{}{\edef\x{}}{%
+    \edef\x{/RestateAlt/\commaReplace/.defForm}%
+  }%
+  \pgfkeysalsofrom{\x}%
+}
+%End of restatable
+\makeatother
