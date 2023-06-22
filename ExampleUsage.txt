@@ -1,0 +1,33 @@
+%Anywhere in document - puts the body in a theorem env
+\begin{restatethis}{theorem}{aLabelForMyImportantTheorem}
+  Here's a very important theorem I want to state this.
+\end{restatethis}
+%Anywhere else to create a verbatim copy within a theorem env (with same number)
+%Unlike restatable this command can come before the restatethis env
+\restate{aLabelForMyImportantTheorem}
+%Perhaps only the body of the text is wanted
+\begin{lemma}
+  \restateBody{aLabelForMyImportantTheorem}
+  %now the body text of Important Theorem is in a lemma
+\end{lemma}
+%The label also works with hyperref
+I am referencing \autoref{aLabelForMyImportantTheorem}.
+%
+%
+%Maybe you want to make a super minor change between the copies
+%That is the purpose of \restateAlt
+\begin{restatethis}{lemma}{lemma1}
+  Lots going on here. 
+  \restateAlt{aLabeltoTriggerThisOpt}%
+  {This is the default text that will appear in the restatethis env%
+  and anywhere without aLabeltoTriggerThisOpt enabled}%
+  {This will be appear when aLabeltoTriggerThisOpt is enabled}
+  \restateAlt{opt2}{You can have more than 1!}{More than 1 is possible}
+\end{restatethis}
+%Somewhere else - both alternatives appear
+\restate[aLabeltoTriggerThisOpt,opt2]{lemma1}
+%Somewhere else - the default for aLabeltoTriggerThisOpt is used, but "More than 1 is possible" is used.
+\restateBody[opt2]{lemma1}
+%or no alternatives at all
+\restate{lemma1}
+%Labels for the options should be unique across all restatethis -es
