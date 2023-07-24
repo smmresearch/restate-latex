@@ -1,6 +1,10 @@
 %Adapted from https://tex.stackexchange.com/questions/356636/restate-a-theorem-before-stating-it
 \ProvidesPackage{restate-private}
-%Requires pgfkeys, etoolbox, thmtools, xstring
+\RequirePackage{thmtools}
+\RequirePackage{environ}
+\RequirePackage{etoolbox}
+\RequirePackage{pgfkeys}
+\RequirePackage{xstring}
 \makeatletter
 %Restatable package very annoyingly requires the content that will be restated
 %to appear first (before any times you call \restate{..}). This fixes it.
