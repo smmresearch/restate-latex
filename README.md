@@ -6,11 +6,13 @@ Also, includes the ability to provide minor alterations in the restatement.
 
 General Use
 ```
-  \begin{restatethis}{(the env type to wrap the body in, e.g theorem, lemma)}{(a label - a hyperref label will be automatically included here)}
+  \begin{restatethis}{(the env type to wrap the body in, e.g theorem, lemma)}{(a label - a hyperref label will be automatically included)}
     This is the the body of what is to be stated.
   \end{restatethis}
 ```
-Anywhere in document this command puts the body in a theorem environment.
+
+
+Anywhere in document the command below puts "There is a line between every two points." in a theorem environment.
 ```
   \begin{restatethis}{theorem}{aLabelForMyImportantTheorem}
     There is a line between every two points.
@@ -18,7 +20,7 @@ Anywhere in document this command puts the body in a theorem environment.
 ```
 There is no need to include `\begin{theorem}...\end{theorem}` or `\label{aLabelForMyImportantTheorem}` yourself.
 
-Anywhere else in the document, include this command to create a verbatim copy within a theorem env (with same number).
+Anywhere else in the document, include the command below to create a verbatim copy within a theorem env (with same number).
 Unlike restatable, this command can come before the restatethis env.
 
 ```
@@ -46,7 +48,7 @@ Example
 
 If minor variations between the restatements are desired, this can be achieved with `\restateAlt` in the source version. It has the syntax 
 ```
-  \restateAlt{(a label for enabling and disabling this optinon}{the default source text when the option is not enabled}{the alternative source when the option is enable}
+  \restateAlt{(a label for enabling and disabling this option)}{the default source text when the option is not enabled}{the alternative source when the option is enabled}
 ```
 
 More than one labeled option is possible.
@@ -61,11 +63,19 @@ Example
     {This will be appear when aLabeltoTriggerThisOpt is enabled}
     \restateAlt{opt2}{You can have more than 1!}{More than 1 is possible}
   \end{restatethis}
-  %Somewhere else - both alternatives appear
+
+  %Somewhere else - The command below produces "Lots going on here.
+  %This will be appear when aLabeltoTriggerThisOpt is enabled. More than 1 is possible."
   \restate[aLabeltoTriggerThisOpt,opt2]{lemma1}
-  %Somewhere else - the default for aLabeltoTriggerThisOpt is used, but "More than 1 is possible" is used.
+
+  %Somewhere else - The command below produces "Lots going on here.
+  %This is the default text that will appear in the restatethis env
+  %and anywhere without aLabeltoTriggerThisOpt enabled More than 1 is possible."
   \restateBody[opt2]{lemma1}
-  %or no alternatives at all
+
+  %or no alternatives at all - The command below produces"Lots going on here.
+  %This is the default text that will appear in the restatethis env
+  %and anywhere without aLabeltoTriggerThisOpt enabled You can have more than 1!."
   \restate{lemma1}
 ```
 
